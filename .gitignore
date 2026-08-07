@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+
+# Environment variables — never commit real secrets
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Database — local SQLite development database and migrations state
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+prisma/dev.db*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing and coverage
+coverage/
+.nyc_output/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Project report and academic documents — not part of the application
+*.docx
+*.pdf
+IMAGES-TO-DOWNLOAD.md
+
+# Local tooling artefacts
+.playwright-mcp/
+playwright-report/
+test-results/
+
+# Prisma client is generated from schema.prisma by `prisma generate`
+prisma/generated/
+
+# Second lockfile left over from an earlier toolchain; npm is authoritative
+pnpm-lock.yaml*
+
+# Screenshots and assets used only in the project report
+lifelink-landing.png
+
+# Duplicate of app/globals.css, not imported anywhere
+styles/
+
+# Documentation and text files — repository holds application code only
+*.md
+*.txt
+LICENSE

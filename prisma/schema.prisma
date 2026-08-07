@@ -1,0 +1,163 @@
+// Prisma schema for Blood Donor Matching System
+// Using SQLite for simplicity (good for school projects)
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ============================================
+// USER MODEL - Base user for all account types
+// ============================================
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  phone         String?
+  role          String    @default("donor") // donor, requester, admin
+  avatarUrl     String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  donorProfile     DonorProfile?
+  requesterProfile RequesterProfile?
+  bloodRequests    BloodRequest[]
+  matches          Match[]
+  sentMessages     Message[]       @relation("SentMessages")
+  receivedMessages Message[]       @relation("ReceivedMessages")
+  conversations1   Conversation[]  @relation("Participant1")
+  conversations2   Conversation[]  @relation("Participant2")
+  sessions         Session[]
+}
+
+// ============================================
+// SESSION MODEL - For user authentication
+// ============================================
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// DONOR PROFILE - Extended info for donors
+// ============================================
+model DonorProfile {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  bloodType        String    // A+, A-, B+, B-, AB+, AB-, O+, O-
+  state            String
+  city             String
+  gender           String?
+  isAvailable      Boolean   @default(true)
+  isVerified       Boolean   @default(false)
+  lastDonationDate DateTime?
+  totalDonations   Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// REQUESTER PROFILE - Extended info for requesters
+// ============================================
+model RequesterProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  requesterType    String   // individual, hospital, clinic, blood_bank, ngo
+  organizationName String?
+  state            String
+  city             String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// BLOOD REQUEST - Blood donation requests
+// ============================================
+model BloodRequest {
+  id            String   @id @default(cuid())
+  requesterId   String
+  patientName   String
+  bloodType     String
+  unitsNeeded   Int      @default(1)
+  urgency       String   // low, medium, high, critical
+  hospitalName  String
+  hospitalState String
+  hospitalCity  String
+  contactPhone  String
+  neededBy      DateTime
+  notes         String?
+  status        String   @default("active") // active, fulfilled, cancelled, expired
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  requester User    @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  matches   Match[]
+}
+
+// ============================================
+// MATCH - Donor-Request matches
+// ============================================
+model Match {
+  id        String   @id @default(cuid())
+  requestId String
+  donorId   String
+  status    String   @default("pending") // pending, accepted, declined, completed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  request      BloodRequest  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  donor        User          @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  conversation Conversation?
+
+  @@unique([requestId, donorId])
+}
+
+// ============================================
+// CONVERSATION - Chat between donor and requester
+// ============================================
+model Conversation {
+  id             String   @id @default(cuid())
+  matchId        String   @unique
+  participant1Id String
+  participant2Id String
+  lastMessageAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  match        Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  participant1 User      @relation("Participant1", fields: [participant1Id], references: [id], onDelete: Cascade)
+  participant2 User      @relation("Participant2", fields: [participant2Id], references: [id], onDelete: Cascade)
+  messages     Message[]
+}
+
+// ============================================
+// MESSAGE - Individual chat messages
+// ============================================
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  receiverId     String
+  content        String
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver     User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+}
