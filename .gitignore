@@ -67,7 +67,9 @@ lifelink-landing.png
 # Duplicate of app/globals.css, not imported anywhere
 styles/
 
-# Documentation and text files — repository holds application code only
+# Documentation and text files — repository holds application code only,
+# except the setup guide
 *.md
+!README.md
 *.txt
 LICENSE
